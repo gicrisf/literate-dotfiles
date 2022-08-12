@@ -1,0 +1,17 @@
+#+title: Literate Dotfiles Readme
+#+author: Giovanni Crisalfi
+
+These are my dotfiles and scripts.
+
+I maintain my configuration with Emacs Org-mode, editing only =dotfiles.org=; other files are generated with org-babel, then symlinked with GNU Stow.
+
+By now, the comments are mostly written in italian, but I'm counting on translate everything in english too.
+
+** Donate
+Did you find something interesting in my dots?
+Why don't you help me keeping myself awake buying me a coffee?
+
+[[https://ko-fi.com/V7V425BFU][https://ko-fi.com/img/githubbutton_sm.svg]]
+
+** License
+Open sourced under the [[./LICENSE][MIT license]].

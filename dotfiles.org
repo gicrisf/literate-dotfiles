@@ -1,0 +1,496 @@
+#+title: Dots
+#+author: Giovanni Crisalfi
+#+hugo_base_dir: ~/zwitterio-it/
+#+hugo_section: dots
+#+STARTUP: show2levels
+#+MACRO: more @@html:<!-- more -->@@
+# Temporary macros for prism support:
+#+MACRO: prismcss @@html:<link href="/assets/prism/prism.css" rel="stylesheet" />@@
+#+MACRO: prismjs @@html:<script src="/assets/prism/prism.js"></script>@@
+
+* Intro
+Sulla scia della mia literate configuration per Doom Emacs, ho pensato di crearne una anche per i miei dots, da cui nasce =dots.org=.
+
+* Bash
+=.bashrc= extended.
+
+Innanzitutto, =org-babel-tangle= i blocchi di questo file.
+Then, append this to =.bashrc= to do the magic:
+
+#+begin_src bash
+if [ -f ~/.bash_extended ]; then
+. ~/.bash_extended
+fi
+#+end_src
+
+** Header
+#+begin_src bash :tangle bash/.bashrc_extended
+#
+# ~/bash/.bashrc_extended
+#
+#+end_src
+
+** Aliases
+Custom aliases.
+
+*** Play LoFi (via Emacs)
+Run =emacsclient= commands in a breeze.
+#+begin_src bash :tangle bash/.bashrc_extended
+alias lofi="emacsclient -e \(play-lofi\)"
+#+end_src
+
+*** Meteo
+
+#+begin_quote
+wttr.in is a console-oriented weather forecast service that supports various information representation methods like terminal-oriented ANSI-sequences for console HTTP clients (curl, httpie, or wget), HTML for web browsers, or PNG for graphical viewers.
+#+end_quote
+
+Si può accedere sia da browser ([[https://wttr.in/][wttr.in]]) che da terminale (via curl):
+
+#+begin_src bash :tangle bash/.bashrc_extended
+alias meteo="curl wttr.in/Caltagirone"
+#+end_src
+
+Adesso è raro che io faccia uso di questo alias perché [[https://github.com/gicrisf/emacs-wttrin][richiamo wttr.in direttamente da Emacs]].
+
+*** To Kindle
+Alias for the Python script below:
+
+#+begin_src bash :tangle bash/.bashrc_extended
+alias tokindle="python3 .tokindle.py"
+#+end_src
+
+*** Zola
+Anziché entrare nella cartella del blog e lanciare =zola serve=:
+
+#+begin_src bash :tangle bash/.bashrc_extended
+alias serve="cd ~/zwitterio-it && zola serve"
+#+end_src
+
+*** Speak
+Fai parlare il computer in italiano direttamente dal terminale.
+
+#+begin_src bash :tangle bash/.bashrc_extended
+alias speak="espeak -v it-it"
+#+end_src
+
+*** VMD
+# Non ricordo come mai fosse utile questo qui nello specifico
+# TODO ricontrollare
+
+Per il rendering di molecole in VMD.
+
+#+begin_src bash :tangle bash/.bashrc_extended
+alias tachyon="/usr/local/lib/vmd/tachyon_LINUXAMD64"
+#+end_src
+
+Posto alcuni dei miei render su [[https://unsplash.com/@gicrisf][Unsplash (@gicrisf)]].
+
+** Alacritty
+From Arch Wiki:
+#+begin_quote
+The window title bar shows "Alacritty" unlike other terminal emulators under Arch, which by default show =user@host:cwd=. See FS#70752.
+
+If you want the Arch default behavior to apply to all your users in Alacritty, you need to edit your =/etc/bash.bashrc= file. Find the case statements which sets the $PROMPT_COMMAND for other terminals:
+#+end_quote
+
+Aggiungi le seguenti al tuo =.bashrc=, così Alacritty mostrerà il percorso della directory nella title bar.
+
+#+begin_src bash :tangle bash/.bashrc_extended
+case ${TERM} in
+
+  xterm*|rxvt*|Eterm|aterm|kterm|alacritty|gnome*)
+     PROMPT_COMMAND=${PROMPT_COMMAND:+$PROMPT_COMMAND; }'printf "\033]0;%s@%s:%s\007" "${USER}" "${HOSTNAME%%.*}" "${PWD/#$HOME/\~}"'
+
+    ;;
+  screen*)
+    PROMPT_COMMAND=${PROMPT_COMMAND:+$PROMPT_COMMAND; }'printf "\033_%s@%s:%s\033\\" "${USER}" "${HOSTNAME%%.*}" "${PWD/#$HOME/\~}"'
+    ;;
+esac
+#+end_src
+** Starship
+Starship launcher:
+
+#+begin_src bash :tangle bash/.bashrc_extended
+eval "$(starship init bash)"
+. "$HOME/.cargo/env"
+#+end_src
+
+** Editor
+Quando usiamo Emacs come daemon, non vogliamo aprire un'istanza ogni volta, ma semplicemente lanciare un nuovo frame.
+
+#+begin_src bash
+emacsclient --create-frame --alternate-editor=""
+#+end_src
+
+Ovviamente, scrivere ogni volta questa riga è a dir poco noioso.
+Ridefiniamo il nostro editor preferito, aggiungendo questi tre comandi a =.bashrc=:
+
+# Re-set the editor for =emacsclient=:
+
+#+begin_src bash
+# ~/.bashrc
+export ALTERNATE_EDITOR=""
+export EDITOR="emacsclient -t"                  # $EDITOR opens in terminal
+export VISUAL="emacsclient -c -a emacs"         # $VISUAL opens in GUI mode
+#+end_src
+
+#+begin_quote
+The emacsclient program will connect to a running instance of Emacs if it exists. -c tells Emacs to open the file in a new frame, which is optional. Specifying -a=”” tells emacsclient to start an instance of emacs if it cannot find one already running.
+#+end_quote
+
+Personalmente, preferisco usare la GUI di Emacs come EDITOR, quindi sostituirò l'argomento del secondo comando con quello del terzo:
+
+#+begin_src bash :tangle bash/.bashrc_extended
+# ~/.bashrc
+export ALTERNATE_EDITOR=""
+export EDITOR="emacsclient -c -a emacs"
+export VISUAL="emacsclient -c -a emacs"         # $VISUAL opens in GUI mode
+#+end_src
+
+Se necessario, possiamo aggiungere degli alias per comodità:
+
+#+begin_src bash
+alias emacs="emacsclient -c -a emacs"
+#+end_src
+
+Possiamo anche influenzare il comportamento del frame al lancio:
+
+#+name: emacsclient-fullscreen
+#+begin_src bash
+emacsclient -c -a emacs -F \"'(fullscreen . maximized)\"
+#+end_src
+
+Riscriviamo l'alias:
+
+#+begin_src bash :tangle bash/.bashrc_extended :noweb yes
+alias emacs="<<emacsclient-fullscreen>>"
+#+end_src
+
+Per aggiungere altri parametri, dai un'occhiata a:
+- [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Frame-Parameters.html#Frame-Parameters][la documentazione (gnu.org)]];
+- [[https://stackoverflow.com/questions/20285965/how-can-i-launch-emacsclient-maximized-from-the-commandline][consigli su StackOverflow]];
+- [[https://emacsredux.com/blog/2020/12/04/maximize-the-emacs-frame-on-startup][consigli su EmacsRedux]];
+
+** Bun
+#+begin_quote
+Bun is a fast all-in-one JavaScript runtime
+#+end_quote
+
+#+begin_src bash :tangle bash/.bashrc_extended
+export BUN_INSTALL="/home/cromo/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+#+end_src
+
+* Alacritty :@software:@notes:org:terminal:
+CLOSED: [2022-03-07]
+:PROPERTIES:
+:EXPORT_HUGO_LASTMOD: [2022-08-05 ven 20:36]
+:EXPORT_HUGO_SECTION: software/alacritty
+:EXPORT_FILE_NAME: index
+:END:
+
+My literate configuration and notes for Alacritty.
+
+{{{more}}}
+
+** Colorschemes
+Scrivi qui la palette che vuoi usare:
+
+#+name:selected_colorscheme
+#+begin_src yaml
+tokyo-night
+#+end_src
+
+Da qui in avanti, elenchiamo le palette disponibili.
+
+#+begin_src yaml :tangle alacritty/.config/alacritty/alacritty.yml
+schemes:
+#+end_src
+
+*** tokyo-night
+Tokyo Night theme, based on both:
+- [[https://github.com/ghifarit53/tokyonight-vim][Tokyonight vim]]
+- [[https://github.com/enkia/tokyo-night-vscode-theme][Tokyo night vscode theme]]
+
+#+begin_src yaml :tangle alacritty/.config/alacritty/alacritty.yml
+  tokyo-night: &tokyo-night
+    # Default colors
+    primary:
+      background: '0x1a1b26'
+      foreground: '0xa9b1d6'
+
+    # Normal colors
+    normal:
+      black:   '0x32344a'
+      red:     '0xf7768e'
+      green:   '0x9ece6a'
+      yellow:  '0xe0af68'
+      blue:    '0x7aa2f7'
+      magenta: '0xad8ee6'
+      cyan:    '0x449dab'
+      white:   '0x787c99'
+
+    # Bright colors
+    bright:
+      black:   '0x444b6a'
+      red:     '0xff7a93'
+      green:   '0xb9f27c'
+      yellow:  '0xff9e64'
+      blue:    '0x7da6ff'
+      magenta: '0xbb9af7'
+      cyan:    '0x0db9d7'
+      white:   '0xacb0d0'
+#+end_src
+
+*** tokyo-night-storm
+
+#+begin_src yaml :tangle alacritty/.config/alacritty/alacritty.yml
+  tokyo-night-storm: &tokyo-night-storm
+    # Default colors
+    primary:
+      background: '0x24283b'
+      foreground: '0xa9b1d6'
+
+    # Normal colors
+    normal:
+      black:   '0x32344a'
+      red:     '0xf7768e'
+      green:   '0x9ece6a'
+      yellow:  '0xe0af68'
+      blue:    '0x7aa2f7'
+      magenta: '0xad8ee6'
+      cyan:    '0x449dab'
+      white:   '0x9699a8'
+
+    # Bright colors
+    bright:
+      black:   '0x444b6a'
+      red:     '0xff7a93'
+      green:   '0xb9f27c'
+      yellow:  '0xff9e64'
+      blue:    '0x7da6ff'
+      magenta: '0xbb9af7'
+      cyan:    '0x0db9d7'
+      white:   '0xacb0d0'
+#+end_src
+
+*** Select color (enabled?)
+
+Nessun colore selezionato al momento.
+Alacritty usa la palette di default.
+Puoi commentare questa riga per disabilitare la scelta del colorscheme.
+
+#+begin_src yaml :tangle alacritty/.config/alacritty/alacritty.yml :noweb yes
+# colors: *<<selected_colorscheme>>
+#+end_src
+
+** GNOME/Files (Nautilus)
+Il file manager di Gnome (detto Nautilus fino alla versione 3.6) consente di aprire un terminale nella cartella che si sta visitando, semplicemente accedendo al menù a tendina con il tasto destro. Nulla di sorprendente, si tratta di una funzione familiare, comune a circa ogni file manager esistente su desktop. Peccato che questa funzione si limiti all'apertura di =gnome-terminal=. E se utilizzassimo un altro emulatore di terminale? Alacritty per esempio?
+
+Ci viene in soccorso [[https://github.com/Stunkymonkey/nautilus-open-any-terminal][un piccolo plugin]].
+
+Si può installare da AUR:
+
+#+begin_src bash
+yay -S nautilus-open-any-terminal
+#+end_src
+
+A questo punto, consiglio di usare dconf-editor per configurarlo e specificare che vogliamo aprire alacritty. Se non l'avete già installato:
+
+#+begin_src bash
+sudo pacman -S dconf-editor
+#+end_src
+
+Quindi aprire, andare su =/com/github/stunkymonkey/nautilus-open-any-terminal/=.
+
+Alla voce =terminal=, specificare ='alacritty'=.
+Per altri sistemi e installazioni alternative, consultare il [[https://github.com/Stunkymonkey/nautilus-open-any-terminal][README]].
+
+** Key bindings
+#+begin_src yaml :tangle alacritty/.config/alacritty/alacritty.yml :noweb yes
+key_bindings:
+#+end_src
+
+*** Zoom (dimensione temporanea del font)
+Premere:
+- =CTRL += per aumentare;
+- =CTRL -= per diminuire;
+- =CTRL == per resettare;
+
+Si possono aggiungere altre bindings su =alacritty.yml= ([[https://github.com/alacritty/alacritty/issues/286#issuecomment-1027367320][vedi qua]]).
+
+*** Nuova istanza di Alacritty nella stessa directory
+Aggiungi un paio di linee al file di configurazione per fare apparire una nuova istanza di Alacritty nella directory di lavoro con =Ctrl+Shift+Enter= (dalla [[https://wiki.archlinux.org/title/Alacritty][wiki di Arch]]).
+
+#+begin_src yaml :tangle alacritty/.config/alacritty/alacritty.yml :noweb yes
+  - { key: Return,   mods: Control|Shift, action: SpawnNewInstance }
+#+end_src
+
+*** Vi mode
+Solitamente, quando voglio copiare qualcosa dall'output di alacritty, uso la cosiddetta vi-mode.
+Come insegna la [[https://wiki.archlinux.org/title/Alacritty#Vi_mode_and_copy/paste][wiki di Arch]],
+
+#+begin_quote
+The vi mode allows moving around Alacritty's viewport and scrollback using the keyboard. By default you can toggle it using =Ctrl+Shift+Space=. To copy, you can either use a mouse to select and press =Ctrl+Shift+c=, or enter Vi mode, start a selection using v, move around with `hjkl` like in vim, and copy the selection with =y=. To paste, press =Ctrl+Shift+v=. To copy/paste to/from X clipboard, you can use a mouse selection to copy and a middle mouse click to paste.
+#+end_quote
+
+** In conclusione :noexport:
+# C'è un problema, questo prism non è stato esportato per supportare yaml
+{{{prismcss}}}
+{{{prismjs}}}
+
+* Python scripts :@software:@notes:dots:python:ebook:
+CLOSED: [2022-08-12 ven]
+:PROPERTIES:
+:EXPORT_HUGO_SECTION: software/python-scripts
+:EXPORT_FILE_NAME: index
+:END:
+
+Some python script I use.
+
+{{{more}}}
+
+** Utils
+Fabric-like implementation for dotted syntax to access Dictionary.
+
+#+begin_src python :tangle scripts/utils.py
+from collections import defaultdict
+
+class AttributeDict(defaultdict):
+    def __init__(self):
+        super(AttributeDict, self).__init__(AttributeDict)
+
+    def __getattr__(self, key):
+        try:
+            return self[key]
+        except KeyError:
+            raise AttributeError(key)
+
+    def __setattr__(self, key, value):
+        self[key] = value
+
+#+end_src
+
+** Send to Kindle
+#+begin_src python :tangle scripts/.tokindle.py
+import glob, os
+from utils import AttributeDict
+import secrets
+#+end_src
+
+*** Environment
+Per comodità uso un'istanza dell'AttributeDict (definito sopra) anziché un dizionario (ma la sostanza è identica).
+
+#+begin_src python :tangle scripts/.tokindle.py
+env = AttributeDict()
+#+end_src
+
+**** Directories
+#+begin_src python :tangle scripts/.tokindle.py
+# Directories
+env.epub_path='./Scaricati'
+env.epub_path_converted='./epub'
+env.mobi_path_sent = './mobi'
+#+end_src
+
+**** SMTP
+Non posso pubblicare questi dati in chiaro, infatti li ho conservati in un modulo a parte. Lascio qui sotto un esempio come =secrets_example.py=. Ricorda che il modulo non è =secrets_example= ma =secrets=, quindi il file va modificato e rinominato, se si vuole che funzioni. Chiaramente, aggiungo =secrets.py= al mio =.gitignore= perché non voglio che i dati segreti siano monitorati.
+
+#+begin_src python :tangle scripts/secrets_example.py
+# To Kindle
+tokindle_smtp = "smtp.examplemail.com"
+tokindle_port = 000
+tokindle_username = "user.name"
+tokindle_password = "your-pwd"
+tokindle_my_mail = "your@examplemail.com"
+tokindle_kindle_mail = "example-mail@kindle.com"
+#+end_src
+
+Get your data from the =secrets= module.
+
+#+begin_src python :tangle scripts/.tokindle.py
+# SMTP settings
+env.smtp = secrets.tokindle_smtp
+env.port = secrets.tokindle_port
+env.username = secrets.tokindle_username
+env.password = secrets.tokindle_password
+env.my_mail = secrets.tokindle_my_mail
+env.kindle_mail = secrets.tokindle_kindle_mail
+#+end_src
+
+*** Script
+- Search for epub files in the selected directory;
+- Move epub files in the selected directory;
+- Convert them in mobi;
+- Move mobi files in the selected directory;
+- Send them to your kindle email.
+
+# TODO check if the mobi directory exists;
+This script relies on Calibre CLI.
+
+#+begin_src python :tangle scripts/.tokindle.py
+def main():
+    """send to kindle"""
+    os.chdir(env.epub_path)
+    for file in glob.glob("*.epub"):
+        filename, ext = os.path.splitext(file)
+
+        # FILE CONVERSION
+        if os.path.exists("{}.mobi".format(filename)):
+            print("********{}.mobi already exists********".format(filename))
+        else:
+            print("********Converting to mobi: {}********".format(filename))
+            os.system('ebook-convert \"{0}\" .mobi'.format(file))
+
+        # Move epub to proper directory
+        os.system('mv \"{0}\" {1}'.format(file, env.epub_path_converted))
+
+        # Pre-setting send command
+        cmd = "calibre-smtp"
+        a = f"-a \"{filename}\".mobi"
+        s = f"-s \"{filename}\""
+        r = f"-r \"{env.smtp}\""
+        port = f"--port {env.port}"
+        u = f"-u \"{env.username}\""
+        p = f"-p \"{env.password}\""
+        mail = f"\"{env.my_mail}\""
+        kindle_mail = f"\"{env.kindle_mail}\""
+
+        # Run send command
+        print("********Sending to {}********".format(env.kindle_mail))
+        os.system(f'{cmd} {a} {s} {r} {port} {u} {p} {mail} {kindle_mail} \"\"')
+
+        # Move mobi to proper directory
+        os.system('mv \"{0}.mobi\" {1}'.format(filename, env.mobi_path_sent))
+
+if __name__ == '__main__':
+    main()
+#+end_src
+
+* Dropbox :@software:dots:
+Un prezioso dotfile necessario solo in caso di installazione manuale.
+
+# Not tangled!
+#+begin_src txt
+# .config/autostart/dropbox.desktop
+
+[Desktop Entry]
+Type=Application
+Exec=dropbox
+Icon=applications-system
+StartupNotify=false
+X-GNOME-Autostart-enabled=true
+Hidden=false
+NoDisplay=false
+Name=dropbox-launcher
+Comment=Launch Dropbox Daemon on startup
+#+end_src
+
+* In conclusione
+
+Attenzione: questo file è in continua trasformazione.
+
+# Esporto prism.js perché per il momento Zola ha un bug che non mi consente di colorare la sintassi.
+{{{prismcss}}}
+{{{prismjs}}}

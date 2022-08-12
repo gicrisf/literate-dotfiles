@@ -1,0 +1,39 @@
+#
+# ~/bash/.bashrc_extended
+#
+
+alias lofi="emacsclient -e \(play-lofi\)"
+
+alias meteo="curl wttr.in/Caltagirone"
+
+alias tokindle="python3 .tokindle.py"
+
+alias serve="cd ~/zwitterio-it && zola serve"
+
+alias speak="espeak -v it-it"
+
+alias tachyon="/usr/local/lib/vmd/tachyon_LINUXAMD64"
+
+case ${TERM} in
+
+  xterm*|rxvt*|Eterm|aterm|kterm|alacritty|gnome*)
+     PROMPT_COMMAND=${PROMPT_COMMAND:+$PROMPT_COMMAND; }'printf "\033]0;%s@%s:%s\007" "${USER}" "${HOSTNAME%%.*}" "${PWD/#$HOME/\~}"'
+
+    ;;
+  screen*)
+    PROMPT_COMMAND=${PROMPT_COMMAND:+$PROMPT_COMMAND; }'printf "\033_%s@%s:%s\033\\" "${USER}" "${HOSTNAME%%.*}" "${PWD/#$HOME/\~}"'
+    ;;
+esac
+
+eval "$(starship init bash)"
+. "$HOME/.cargo/env"
+
+# ~/.bashrc
+export ALTERNATE_EDITOR=""
+export EDITOR="emacsclient -c -a emacs"
+export VISUAL="emacsclient -c -a emacs"         # $VISUAL opens in GUI mode
+
+alias emacs="emacsclient -c -a emacs -F \"'(fullscreen . maximized)\""
+
+export BUN_INSTALL="/home/cromo/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
