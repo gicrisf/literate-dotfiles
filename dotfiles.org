@@ -340,133 +340,19 @@ The vi mode allows moving around Alacritty's viewport and scrollback using the k
 {{{prismcss}}}
 {{{prismjs}}}
 
-* Python scripts :@software:@notes:dots:python:ebook:
+* Python scripts :@software:@notes:dots:python:
 CLOSED: [2022-08-12 ven]
 :PROPERTIES:
 :EXPORT_HUGO_SECTION: software/python-scripts
 :EXPORT_FILE_NAME: index
 :END:
 
-Some python script I use.
+Some python script.
 
 {{{more}}}
 
-** Utils
-Fabric-like implementation for dotted syntax to access Dictionary.
-
-#+begin_src python :tangle scripts/utils.py
-from collections import defaultdict
-
-class AttributeDict(defaultdict):
-    def __init__(self):
-        super(AttributeDict, self).__init__(AttributeDict)
-
-    def __getattr__(self, key):
-        try:
-            return self[key]
-        except KeyError:
-            raise AttributeError(key)
-
-    def __setattr__(self, key, value):
-        self[key] = value
-
-#+end_src
-
 ** Send to Kindle
-#+begin_src python :tangle scripts/.tokindle.py
-import glob, os
-from utils import AttributeDict
-import secrets
-#+end_src
-
-*** Environment
-Per comodità uso un'istanza dell'AttributeDict (definito sopra) anziché un dizionario (ma la sostanza è identica).
-
-#+begin_src python :tangle scripts/.tokindle.py
-env = AttributeDict()
-#+end_src
-
-**** Directories
-#+begin_src python :tangle scripts/.tokindle.py
-# Directories
-env.epub_path='./Scaricati'
-env.epub_path_converted='./epub'
-env.mobi_path_sent = './mobi'
-#+end_src
-
-**** SMTP
-Non posso pubblicare questi dati in chiaro, infatti li ho conservati in un modulo a parte. Lascio qui sotto un esempio come =secrets_example.py=. Ricorda che il modulo non è =secrets_example= ma =secrets=, quindi il file va modificato e rinominato, se si vuole che funzioni. Chiaramente, aggiungo =secrets.py= al mio =.gitignore= perché non voglio che i dati segreti siano monitorati.
-
-#+begin_src python :tangle scripts/secrets_example.py
-# To Kindle
-tokindle_smtp = "smtp.examplemail.com"
-tokindle_port = 000
-tokindle_username = "user.name"
-tokindle_password = "your-pwd"
-tokindle_my_mail = "your@examplemail.com"
-tokindle_kindle_mail = "example-mail@kindle.com"
-#+end_src
-
-Get your data from the =secrets= module.
-
-#+begin_src python :tangle scripts/.tokindle.py
-# SMTP settings
-env.smtp = secrets.tokindle_smtp
-env.port = secrets.tokindle_port
-env.username = secrets.tokindle_username
-env.password = secrets.tokindle_password
-env.my_mail = secrets.tokindle_my_mail
-env.kindle_mail = secrets.tokindle_kindle_mail
-#+end_src
-
-*** Script
-- Search for epub files in the selected directory;
-- Move epub files in the selected directory;
-- Convert them in mobi;
-- Move mobi files in the selected directory;
-- Send them to your kindle email.
-
-# TODO check if the mobi directory exists;
-This script relies on Calibre CLI.
-
-#+begin_src python :tangle scripts/.tokindle.py
-def main():
-    """send to kindle"""
-    os.chdir(env.epub_path)
-    for file in glob.glob("*.epub"):
-        filename, ext = os.path.splitext(file)
-
-        # FILE CONVERSION
-        if os.path.exists("{}.mobi".format(filename)):
-            print("********{}.mobi already exists********".format(filename))
-        else:
-            print("********Converting to mobi: {}********".format(filename))
-            os.system('ebook-convert \"{0}\" .mobi'.format(file))
-
-        # Move epub to proper directory
-        os.system('mv \"{0}\" {1}'.format(file, env.epub_path_converted))
-
-        # Pre-setting send command
-        cmd = "calibre-smtp"
-        a = f"-a \"{filename}\".mobi"
-        s = f"-s \"{filename}\""
-        r = f"-r \"{env.smtp}\""
-        port = f"--port {env.port}"
-        u = f"-u \"{env.username}\""
-        p = f"-p \"{env.password}\""
-        mail = f"\"{env.my_mail}\""
-        kindle_mail = f"\"{env.kindle_mail}\""
-
-        # Run send command
-        print("********Sending to {}********".format(env.kindle_mail))
-        os.system(f'{cmd} {a} {s} {r} {port} {u} {p} {mail} {kindle_mail} \"\"')
-
-        # Move mobi to proper directory
-        os.system('mv \"{0}.mobi\" {1}'.format(filename, env.mobi_path_sent))
-
-if __name__ == '__main__':
-    main()
-#+end_src
+Now moved to [@/software/send-to-kindle/index.en.md][another and more specific page on this blog]].
 
 * Dropbox :@software:dots:
 Un prezioso dotfile necessario solo in caso di installazione manuale.
@@ -485,6 +371,24 @@ Hidden=false
 NoDisplay=false
 Name=dropbox-launcher
 Comment=Launch Dropbox Daemon on startup
+#+end_src
+
+* Powertop
+
+Remember to enable/start the service.
+
+# :tangle /etc/systemd/system/powertop.service
+#+begin_src txt
+[Unit]
+Description=Powertop tunings
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/powertop --auto-tune
+
+[Install]
+WantedBy=multi-user.target
 #+end_src
 
 * In conclusione
